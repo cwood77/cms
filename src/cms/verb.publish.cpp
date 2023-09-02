@@ -86,6 +86,8 @@ void publishCommand::run(console::iLog& l)
 
       db->publish(a,f.fullFilePath());
    });
+
+   l.writeLnInfo("publish complete");
 }
 
 } // anonymous namespace

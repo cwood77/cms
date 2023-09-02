@@ -41,7 +41,7 @@ public:
       tcat::typePtr<file::iFileManager> fMan;
       if(fMan->doesFileExist(sstPath))
       {
-         m_pLog->writeLnVerbose("asset already recorded");
+         m_pLog->writeLnInfo("asset already recorded");
          return;
       }
 

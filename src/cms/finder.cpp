@@ -32,7 +32,7 @@ public:
 
          tcat::typePtr<cmn::serviceManager> svcMan;
          auto& l = svcMan->demand<console::iLog>();
-         l.writeLnVerbose("computed hash is %s",m_hash.c_str());
+         l.writeLnInfo("computed hash is %s",m_hash.c_str());
       }
       return m_hash;
    }
@@ -77,7 +77,7 @@ bool zipHandler::shouldDescendIntoFolder(const std::wstring& fullPath) const
    const bool skip = (m_foldersToIgnore.find(fullPath)!=m_foldersToIgnore.end());
 
    if(skip)
-      m_pLog->writeLnVerbose("skipping expanded ZIP file - %S",fullPath.c_str());
+      m_pLog->writeLnInfo("skipping expanded ZIP file - %S",fullPath.c_str());
 
    return !skip;
 }
@@ -103,7 +103,7 @@ void assetFinder::find(const std::wstring& path)
       throw std::runtime_error(cmn::narrow(L"bad path: " + path));
 
    std::set<std::wstring> subfolders;
-   m_pLog->writeLnVerbose("traversing folder %S", path.c_str());
+   m_pLog->writeLnInfo("traversing folder %S", path.c_str());
    do
    {
       if(std::wstring(L".") == fData.cFileName)
@@ -130,7 +130,7 @@ void assetFinder::considerFile(const std::wstring& fullPath, const std::wstring&
    auto ext = cmn::lower(cmn::splitExt(fileName));
    if(!m_aInfo.isExt(ext))
    {
-      m_pLog->writeLnVerbose("Ignoring file ext %S (%S)",ext.c_str(),fullPath.c_str());
+      m_pLog->writeLnInfo("Ignoring file ext %S (%S)",ext.c_str(),fullPath.c_str());
       return;
    }
 
