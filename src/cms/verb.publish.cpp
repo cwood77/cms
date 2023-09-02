@@ -16,15 +16,11 @@ namespace {
 
 class publishCommand : public console::iCommand {
 public:
-   publishCommand() : oPreview(false) {}
-
    virtual void run(console::iLog& l);
 
    std::string oPath;
    std::string oSource;
    std::string oTags;
-
-   bool oPreview;
 };
 
 class myVerb : public console::globalVerb {
@@ -40,8 +36,6 @@ protected:
          console::stringParameter::required(offsetof(publishCommand,oSource)));
       v->addParameter(
          console::stringParameter::required(offsetof(publishCommand,oTags)));
-      v->addOption(
-         *new console::boolOption("--preview",offsetof(publishCommand,oPreview)));
 
       return v.release();
    }

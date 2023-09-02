@@ -5,13 +5,11 @@
 #include "../cmn/win32.hpp"
 #include "../cms/configHelper.hpp"
 #include "../console/log.hpp"
-#include "../db/assetConverter.hpp"
 #include "../file/api.hpp"
 #include "../file/manager.hpp"
 #include "../tcatlib/api.hpp"
 #include "api.hpp"
-#include <cstdio>
-#include <stdarg.h>
+#include "assetConverter.hpp"
 #include <windows.h>
 
 namespace db {

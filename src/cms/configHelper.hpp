@@ -1,10 +1,11 @@
 #ifndef ___cms_configHelper___
 #define ___cms_configHelper___
 
-#include "../console/log.hpp"
 #include "../file/api.hpp"
 #include "../file/manager.hpp"
 #include "../tcatlib/api.hpp"
+
+namespace console { class iLog; }
 
 namespace cms {
 

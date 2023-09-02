@@ -40,11 +40,11 @@ public:
    std::string fileName;
 };
 
-#if 0
+#if 1
 class usageRefs {
 public:
    std::string lastUpdated;
-   std::list<std::string> guids;
+   std::set<std::string> hashes;
 };
 #endif
 
@@ -62,17 +62,14 @@ public:
 };
 
 #if 0
+// --extract <tag>
 class iTagFilter : public iAssetProvider {
 public:
    virtual void configure(const std::string& value, iAssetProvider& base) = 0;
 };
 
+// --extract <guid>
 class iGuidFilter : public iAssetProvider {
-public:
-   virtual void configure(const std::string& value, iAssetProvider& base) = 0;
-};
-
-class iHashFilter : public iAssetProvider {
 public:
    virtual void configure(const std::string& value, iAssetProvider& base) = 0;
 };
@@ -81,6 +78,16 @@ class iAssetExtractor {
 public:
    virtual void configure(iAssetProvider& base) = 0;
    virtual void extract(const std::wstring& destRoot) = 0;
+};
+#endif
+
+#if 1
+// --refs
+class iHashIndex {
+public:
+   virtual ~iHashIndex() {}
+   virtual void configure(iAssetProvider& base) = 0;
+   virtual bool hasAsset(const std::string& hash) const = 0;
 };
 #endif
 

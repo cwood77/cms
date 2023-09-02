@@ -129,6 +129,7 @@ $(CONSOLE_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 DB_SRC = \
 	src/db/assetConverter.cpp \
 	src/db/db.cpp \
+	src/db/hashIndex.cpp \
 
 DB_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(DB_SRC)))
 
