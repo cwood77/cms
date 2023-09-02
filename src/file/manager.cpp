@@ -377,7 +377,7 @@ const char *fileManager::calculatePath(pathRoots root, const char *pathSuffix) c
       path += "\\cdwe\\";
 
       if(root == kUserData || root == kAppData)
-         path += "cloudbox\\";
+         path += "cms\\";
    }
 
    path += pathSuffix;

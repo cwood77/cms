@@ -61,6 +61,11 @@ void publishCommand::run(console::iLog& l)
    l.writeLnDebug("compiling services");
    tcat::typePtr<cmn::serviceManager> svcMan;
    cmn::autoService<console::iLog> _alog(*svcMan,l);
+   cmn::autoService<sst::dict> _afig(*svcMan,pFile->dict());
+
+   l.writeLnDebug("loading DB");
+   tcat::typePtr<db::iDb> db;
+   cmn::autoService<db::iDb> _adb(*svcMan,*db);
 
    auto tags = cmn::splitSet(oTags,',');
 
@@ -79,7 +84,7 @@ void publishCommand::run(console::iLog& l)
       a.hash = f.hash();
       a.fileName = cmn::narrow(f.fileName());
 
-      // if at least one file found, save asset
+      db->publish(a,f.fullFilePath());
    });
 }
 

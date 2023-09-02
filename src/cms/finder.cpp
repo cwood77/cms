@@ -12,10 +12,11 @@ namespace {
 
 class fileInfo : public assetFinder::iFileInfo {
 public:
-   fileInfo(const std::wstring& fullFilePath, const std::wstring& fileName)
-   : m_fileName(fileName), m_fullFilePath(fullFilePath) {}
+   fileInfo(const std::wstring& fullFilePath, const std::wstring& fileName, const std::wstring& ext)
+   : m_fileName(fileName), m_ext(ext), m_fullFilePath(fullFilePath) {}
 
    virtual const std::wstring& fileName() const { return m_fileName; }
+   virtual const std::wstring& ext() const { return m_ext; }
    virtual const std::wstring& fullFilePath() const { return m_fullFilePath; }
 
    virtual const std::string& hash() const
@@ -38,6 +39,7 @@ public:
 
 private:
    std::wstring m_fileName;
+   std::wstring m_ext;
    std::wstring m_fullFilePath;
    mutable std::string m_hash;
 };
@@ -132,7 +134,7 @@ void assetFinder::considerFile(const std::wstring& fullPath, const std::wstring&
       return;
    }
 
-   fileInfo fi(fullPath,fileName);
+   fileInfo fi(fullPath,fileName,ext);
    m_f(fi);
 }
 

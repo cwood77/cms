@@ -35,6 +35,7 @@ public:
    class iFileInfo {
    public:
       virtual const std::wstring& fileName() const = 0;
+      virtual const std::wstring& ext() const = 0;
       virtual const std::wstring& fullFilePath() const = 0;
       virtual const std::string& hash() const = 0;
    };
