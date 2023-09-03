@@ -1,3 +1,4 @@
+#include "../cmn/string.hpp"
 #include "../file/api.hpp"
 #include "../tcatlib/api.hpp"
 #include "api.hpp"
@@ -30,7 +31,12 @@ public:
 
    virtual void loadFromSst(sst::dict& d, asset& a)
    {
-      throw 3.14;
+      a.guid = d["guid"].as<sst::str>().get();
+      a.source = d["source"].as<sst::str>().get();
+      std::string T = d["tags"].as<sst::str>().get();
+      a.tags = cmn::splitSet(T,',');
+      a.hash = d["hash"].as<sst::str>().get();
+      a.fileName = d["fileName"].as<sst::str>().get();
    }
 };
 

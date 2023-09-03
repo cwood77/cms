@@ -130,6 +130,7 @@ DB_SRC = \
 	src/db/assetConverter.cpp \
 	src/db/db.cpp \
 	src/db/hashIndex.cpp \
+	src/db/usageRefsConverter.cpp \
 
 DB_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(DB_SRC)))
 
@@ -254,6 +255,7 @@ CMS_SRC = \
 	src/cms/finder.cpp \
 	src/cms/main.cpp \
 	src/cms/verb.publish.cpp \
+	src/cms/verb.refs.cpp \
 
 CMS_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(CMS_SRC)))
 

@@ -10,6 +10,7 @@
 #include "../tcatlib/api.hpp"
 #include "api.hpp"
 #include "assetConverter.hpp"
+#include "usageRefsConverter.hpp"
 #include <windows.h>
 
 namespace db {
@@ -25,11 +26,45 @@ public:
 
    virtual const std::list<asset>& provideAssets() const
    {
-      throw 3.14;
+      if(m_assets.size())
+         return m_assets;
+
+      tcat::typePtr<file::iFileManager> fMan;
+
+      auto aPath = cmn::widen(cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog) + "assets");
+
+      cmn::autoFindHandle hFind;
+      WIN32_FIND_DATAW fData;
+      hFind.h = ::FindFirstFileW((aPath + L"\\*.sst").c_str(),&fData);
+      if(hFind.h == INVALID_HANDLE_VALUE)
+         throw std::runtime_error(cmn::narrow(L"bad path: " + aPath));
+
+      do
+      {
+         if(fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            ;
+         else
+         {
+            std::wstring fullPath = aPath + L"\\" + fData.cFileName;
+            cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
+               cmn::narrow(fullPath).c_str(),
+               file::iFileManager::kReadOnly
+            ));
+            pFile->tie(*m_pLog);
+            tcat::typePtr<iAssetConverter> fmt;
+            asset a;
+            fmt->loadFromSst(pFile->dict(),a);
+            m_assets.push_back(a);
+         }
+      } while(::FindNextFileW(hFind.h,&fData));
+
+      return m_assets;
    }
 
    virtual void publish(const asset& a, const std::wstring& fullAssetPath)
    {
+      m_assets.clear();
+
       auto appPath = cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog);
       auto sstPath = appPath + "assets\\" + a.hash + ".sst";
       auto assetPath
@@ -63,9 +98,26 @@ public:
       pFile->scheduleFor(file::iFileManager::kSaveOnClose);
    }
 
+   virtual void saveRefs(const usageRefs& r, const std::string& path)
+   {
+      tcat::typePtr<file::iFileManager> fMan;
+
+      // save the SST
+      cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
+         (path + "\\usageRefs.sst").c_str()
+      ));
+      pFile->tie(*m_pLog);
+      tcat::typePtr<iUsageRefsConverter> fmt;
+      fmt->saveToSst(r,pFile->dict());
+
+      // commit the SST
+      pFile->scheduleFor(file::iFileManager::kSaveOnClose);
+   }
+
 private:
    console::iLog *m_pLog;
    sst::dict *m_pConfig;
+   mutable std::list<asset> m_assets;
 };
 
 tcatExposeSingletonTypeAs(db,iDb);

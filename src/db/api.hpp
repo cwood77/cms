@@ -59,6 +59,7 @@ public:
 class iDb : public iAssetProvider {
 public:
    virtual void publish(const asset& a, const std::wstring& fullAssetPath) = 0;
+   virtual void saveRefs(const usageRefs& r, const std::string& path) = 0;
 };
 
 #if 0
