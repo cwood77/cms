@@ -1,3 +1,4 @@
+#include "../cmn/autoPtr.hpp"
 #include "../cmn/service.hpp"
 #include "../console/log.hpp"
 #include "../db/api.hpp"
@@ -8,7 +9,7 @@
 
 namespace cms {
 
-void commonVerb::run(std::function<void()> f)
+void commonVerb::run(console::iLog& l, std::function<void()> f)
 {
    tcat::typePtr<file::iFileManager> fMan;
    cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(

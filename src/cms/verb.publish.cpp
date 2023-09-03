@@ -1,10 +1,12 @@
 #define WIN32_LEAN_AND_MEAN
-#include "../cmn/autoPtr.hpp"
 #include "../cmn/guid.hpp"
 #include "../cmn/service.hpp"
 #include "../cmn/string.hpp"
 #include "../console/arg.hpp"
 #include "../console/log.hpp"
+#include "../db/api.hpp"
+#include "../tcatlib/api.hpp"
+#include "commonVerb.hpp"
 #include "finder.hpp"
 #include <memory>
 
@@ -39,9 +41,9 @@ protected:
 
 void publishCommand::run(console::iLog& l)
 {
-   commonVerb::run([&](){
+   cms::commonVerb::run(l,[&](){
       tcat::typePtr<cmn::serviceManager> svcMan;
-      auto& l = svcMan->demand<console::iLog>();
+      auto& db = svcMan->demand<db::iDb>();
 
       auto tags = cmn::splitSet(oTags,',');
 
@@ -60,7 +62,7 @@ void publishCommand::run(console::iLog& l)
          a.hash = f.hash();
          a.fileName = cmn::narrow(f.fileName());
 
-         db->publish(a,f.fullFilePath());
+         db.publish(a,f.fullFilePath());
       });
 
       l.writeLnInfo("publish complete");

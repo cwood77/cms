@@ -3,6 +3,8 @@
 
 #include <functional>
 
+namespace console { class iLog; }
+
 namespace cms {
 
 // standard boilerplate bits for most/all verbs:
@@ -11,7 +13,7 @@ namespace cms {
 // - etc
 class commonVerb {
 public:
-   static void run(std::function<void()> f);
+   static void run(console::iLog& l, std::function<void()> f);
 };
 
 } // namespace cms
