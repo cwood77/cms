@@ -57,7 +57,7 @@ void refsCommand::run(console::iLog& l)
             valid = false;
             l.writeLnInfo("FAILED! - asset is unknown");
             console::autoIndent _ai(l);
-            l.writeLnInfo("filepath: %S",f.fullFilePath());
+            l.writeLnInfo("filepath: %S",f.fullFilePath().c_str());
          }
          else
             refs.hashes.insert(h);
