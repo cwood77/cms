@@ -5,10 +5,6 @@
 #include "../cmn/string.hpp"
 #include "../console/arg.hpp"
 #include "../console/log.hpp"
-#include "../db/api.hpp"
-#include "../file/api.hpp"
-#include "../file/manager.hpp"
-#include "../tcatlib/api.hpp"
 #include "finder.hpp"
 #include <memory>
 
@@ -43,45 +39,32 @@ protected:
 
 void publishCommand::run(console::iLog& l)
 {
-   tcat::typePtr<file::iFileManager> fMan;
-   cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
-      file::iFileManager::kExeAdjacent,
-      "config.sst",
-      file::iFileManager::kReadOnly
-   ));
-   pFile->tie(l);
-   l.configure(pFile->dict());
+   commonVerb::run([&](){
+      tcat::typePtr<cmn::serviceManager> svcMan;
+      auto& l = svcMan->demand<console::iLog>();
 
-   l.writeLnDebug("compiling services");
-   tcat::typePtr<cmn::serviceManager> svcMan;
-   cmn::autoService<console::iLog> _alog(*svcMan,l);
-   cmn::autoService<sst::dict> _afig(*svcMan,pFile->dict());
+      auto tags = cmn::splitSet(oTags,',');
 
-   l.writeLnDebug("loading DB");
-   tcat::typePtr<db::iDb> db;
-   cmn::autoService<db::iDb> _adb(*svcMan,*db);
+      cms::assetFinder::find(cmn::widen(oPath),[&](auto& f)
+      {
+         l.writeLnInfo("handling file %S",f.fileName().c_str());
+         console::autoIndent _ai(l);
 
-   auto tags = cmn::splitSet(oTags,',');
+         db::asset a;
+         a.guid = cmn::guid::create();
+         l.writeLnInfo("creating new asset %s",a.guid.c_str());
 
-   cms::assetFinder::find(cmn::widen(oPath),[&](auto& f)
-   {
-      l.writeLnInfo("handling file %S",f.fileName().c_str());
-      console::autoIndent _ai(l);
+         a.source = oSource;
+         a.tags = tags;
 
-      db::asset a;
-      a.guid = cmn::guid::create();
-      l.writeLnInfo("creating new asset %s",a.guid.c_str());
+         a.hash = f.hash();
+         a.fileName = cmn::narrow(f.fileName());
 
-      a.source = oSource;
-      a.tags = tags;
+         db->publish(a,f.fullFilePath());
+      });
 
-      a.hash = f.hash();
-      a.fileName = cmn::narrow(f.fileName());
-
-      db->publish(a,f.fullFilePath());
+      l.writeLnInfo("publish complete");
    });
-
-   l.writeLnInfo("publish complete");
 }
 
 } // anonymous namespace

@@ -250,6 +250,7 @@ $(TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 # cms
 
 CMS_SRC = \
+	src/cms/commonVerb.cpp \
 	src/cms/finder.cpp \
 	src/cms/main.cpp \
 	src/cms/verb.publish.cpp \
