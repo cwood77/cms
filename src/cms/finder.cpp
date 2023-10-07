@@ -53,6 +53,7 @@ assetInfo::assetInfo()
    m_exts.insert(L"jpg");
    m_exts.insert(L"png");
    m_exts.insert(L"webp");
+   m_exts.insert(L"zip");
 }
 
 zipHandler::zipHandler()
