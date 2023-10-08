@@ -12,12 +12,13 @@ namespace {
 
 class fileInfo : public assetFinder::iFileInfo {
 public:
-   fileInfo(const std::wstring& fullFilePath, const std::wstring& fileName, const std::wstring& ext)
-   : m_fileName(fileName), m_ext(ext), m_fullFilePath(fullFilePath) {}
+   fileInfo(const std::wstring& fullFilePath, const std::wstring& fileName, const std::wstring& ext, const std::wstring& thumbnail = L"")
+   : m_fileName(fileName), m_ext(ext), m_fullFilePath(fullFilePath), m_thumbnailPath(thumbnail) {}
 
    virtual const std::wstring& fileName() const { return m_fileName; }
    virtual const std::wstring& ext() const { return m_ext; }
    virtual const std::wstring& fullFilePath() const { return m_fullFilePath; }
+   virtual const std::wstring& thumbnailFullFilePath() const { return m_thumbnailPath; }
 
    virtual const std::string& hash() const
    {
@@ -41,6 +42,7 @@ private:
    std::wstring m_fileName;
    std::wstring m_ext;
    std::wstring m_fullFilePath;
+   std::wstring m_thumbnailPath;
    mutable std::string m_hash;
 };
 
@@ -52,34 +54,65 @@ zipHandler::zipHandler()
    m_pLog = &svcMan->demand<console::iLog>();
 }
 
-void zipHandler::noteFile(const std::wstring& fullPath, const std::wstring& fileName)
+bool zipHandler::noteFile(const std::wstring& fullPath, const std::wstring& fileName)
 {
    auto ext = cmn::lower(cmn::splitExt(fileName));
    if(ext != L"zip")
-      return;
+      return false;
 
    std::wstring without;
    cmn::splitExt(fullPath,&without);
-   m_foldersToIgnore.insert(without);
+   m_foldersToHandle[without];
+   m_fileNames[without] = fileName;
+   return true;
 }
 
-bool zipHandler::shouldDescendIntoFolder(const std::wstring& fullPath) const
+bool zipHandler::shouldDescendIntoFolder(const std::wstring& fullPath)
 {
-   const bool skip = (m_foldersToIgnore.find(fullPath)!=m_foldersToIgnore.end());
+   const bool handle = (m_foldersToHandle.find(fullPath)!=m_foldersToHandle.end());
 
-   if(skip)
-      m_pLog->writeLnInfo("skipping expanded ZIP file - %S",fullPath.c_str());
+   if(handle)
+   {
+      m_pLog->writeLnInfo("looking for thumbnail in expanded ZIP file - %S",fullPath.c_str());
 
-   return !skip;
+      console::autoIndent _i(*m_pLog);
+      tcat::typePtr<db::iAssetFileTypeExpert> aFTEx;
+      std::wstring tn;
+      assetFinder::find(fullPath,[&](auto& f)
+      {
+         if(tn.empty() && aFTEx->fetch(f.ext())->isWebViewable())
+            tn = f.fullFilePath();
+      },/*chatty*/false);
+      if(!tn.empty())
+      {
+         m_pLog->writeLnInfo("found thumbnail %S",tn.c_str());
+         m_foldersToHandle[fullPath] = tn;
+      }
+   }
+
+   return !handle;
 }
 
-void assetFinder::find(const std::wstring& path, std::function<void(iFileInfo&)> f)
+void zipHandler::processDeferredAdds(std::function<void(const std::wstring&, const std::wstring&, const std::wstring&)> f)
 {
-   assetFinder(f).find(path);
+   for(auto it=m_foldersToHandle.begin();it!=m_foldersToHandle.end();++it)
+      f(it->first,m_fileNames[it->first],it->second);
 }
 
-assetFinder::assetFinder(std::function<void(iFileInfo&)> f)
-: m_f(f)
+void assetFinder::find(const std::wstring& path, std::function<void(iFileInfo&)> f, bool chatty)
+{
+   assetFinder self(f,chatty);
+   self.find(path);
+   self.m_zip.processDeferredAdds([&](auto& fullFolderPath, auto& fileName, auto& tn)
+   {
+      fileInfo fi(fullFolderPath + L".zip",fileName,L"zip",tn);
+      f(fi);
+   });
+}
+
+assetFinder::assetFinder(std::function<void(iFileInfo&)> f, bool chatty)
+: m_chatty(chatty)
+, m_f(f)
 {
    tcat::typePtr<cmn::serviceManager> svcMan;
    m_pLog = &svcMan->demand<console::iLog>();
@@ -117,11 +150,14 @@ void assetFinder::find(const std::wstring& path)
 
 void assetFinder::considerFile(const std::wstring& fullPath, const std::wstring& fileName)
 {
-   m_zip.noteFile(fullPath,fileName);
+   if(m_zip.noteFile(fullPath,fileName))
+      return; // deferring add for later, in case I can find a thumbnail
+
    auto ext = cmn::lower(cmn::splitExt(fileName));
    if(m_pAExpert->fetch(ext) == NULL)
    {
-      m_pLog->writeLnInfo("Ignoring file ext %S (%S)",ext.c_str(),fullPath.c_str());
+      if(m_chatty)
+         m_pLog->writeLnInfo("Ignoring file ext %S (%S)",ext.c_str(),fullPath.c_str());
       return;
    }
 

@@ -3,7 +3,7 @@
 
 #include "../db/api.hpp"
 #include <functional>
-#include <set>
+#include <map>
 
 namespace console { class iLog; }
 
@@ -13,11 +13,14 @@ class zipHandler {
 public:
    zipHandler();
 
-   void noteFile(const std::wstring& fullPath, const std::wstring& fileName);
-   bool shouldDescendIntoFolder(const std::wstring& fullPath) const;
+   bool noteFile(const std::wstring& fullPath, const std::wstring& fileName);
+   bool shouldDescendIntoFolder(const std::wstring& fullPath);
+
+   void processDeferredAdds(std::function<void(const std::wstring&, const std::wstring&, const std::wstring&)> f);
 
 private:
-   std::set<std::wstring> m_foldersToIgnore;
+   std::map<std::wstring,std::wstring> m_foldersToHandle;
+   std::map<std::wstring,std::wstring> m_fileNames;
    console::iLog *m_pLog;
 };
 
@@ -28,17 +31,19 @@ public:
       virtual const std::wstring& fileName() const = 0;
       virtual const std::wstring& ext() const = 0;
       virtual const std::wstring& fullFilePath() const = 0;
+      virtual const std::wstring& thumbnailFullFilePath() const = 0;
       virtual const std::string& hash() const = 0;
    };
 
-   static void find(const std::wstring& path, std::function<void(iFileInfo&)> f);
+   static void find(const std::wstring& path, std::function<void(iFileInfo&)> f, bool chatty = true);
 
 private:
-   explicit assetFinder(std::function<void(iFileInfo&)> f);
+   assetFinder(std::function<void(iFileInfo&)> f, bool chatty);
 
    void find(const std::wstring& path);
    void considerFile(const std::wstring& fullPath, const std::wstring& fileName);
 
+   const bool m_chatty;
    tcat::typePtr<db::iAssetFileTypeExpert> m_pAExpert;
    zipHandler m_zip;
    std::function<void(iFileInfo&)> m_f;

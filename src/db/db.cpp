@@ -61,7 +61,7 @@ public:
       return m_assets;
    }
 
-   virtual void publish(const asset& a, const std::wstring& fullAssetPath)
+   virtual void publish(const asset& a, const std::wstring& fullAssetPath, const std::wstring& fullThumbnailPath)
    {
       m_assets.clear();
 
@@ -70,6 +70,11 @@ public:
       auto assetPath
          = cmn::widen(appPath + "assets\\" + a.hash + ".")
          + cmn::splitExt(fullAssetPath);
+      std::wstring thumbnailPath;
+      if(!fullThumbnailPath.empty())
+         thumbnailPath
+            = cmn::widen(appPath + "assets\\" + a.hash + "-tn.")
+            + cmn::splitExt(fullThumbnailPath);
 
       tcat::typePtr<file::iFileManager> fMan;
       if(fMan->doesFileExist(sstPath))
@@ -93,6 +98,17 @@ public:
          /*bFailIfExists*/TRUE);
       if(!success)
          throw std::runtime_error("failed to copy asset file");
+
+      // copy thumbnail
+      if(!fullThumbnailPath.empty())
+      {
+         auto success = ::CopyFileW(
+            fullThumbnailPath.c_str(),
+            thumbnailPath.c_str(),
+            /*bFailIfExists*/TRUE);
+         if(!success)
+            throw std::runtime_error("failed to copy thumbnail file");
+      }
 
       // commit the SST
       pFile->scheduleFor(file::iFileManager::kSaveOnClose);

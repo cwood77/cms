@@ -23,6 +23,7 @@ public:
       m_info[L"jfif"] = assetFileTypeInfo(true);
       m_info[L"jpg"]  = assetFileTypeInfo(true);
       m_info[L"png"]  = assetFileTypeInfo(true);
+      m_info[L"svg"]  = assetFileTypeInfo(true);
       m_info[L"webp"] = assetFileTypeInfo(true);
       m_info[L"zip"]  = assetFileTypeInfo(false);
    }

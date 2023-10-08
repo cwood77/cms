@@ -47,8 +47,10 @@ public:
    std::string guid; // maybe uneeded?
    std::string source;
    std::set<std::string> tags;
+   std::string legal;
    std::string hash;
    std::string fileName;
+   std::string thumbnailExt;
 };
 
 #if 1
@@ -69,7 +71,7 @@ public:
 
 class iDb : public iAssetProvider {
 public:
-   virtual void publish(const asset& a, const std::wstring& fullAssetPath) = 0;
+   virtual void publish(const asset& a, const std::wstring& fullAssetPath, const std::wstring& fullThumbnailPath) = 0;
    virtual void saveRefs(const usageRefs& r, const std::string& path) = 0;
    virtual void commit() = 0;
 };

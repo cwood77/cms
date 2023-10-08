@@ -14,11 +14,15 @@ namespace {
 
 class publishCommand : public console::iCommand {
 public:
+   publishCommand() : oLegal(false), oIllegal(false) {}
+
    virtual void run(console::iLog& l);
 
    std::string oPath;
    std::string oSource;
    std::string oTags;
+   bool oLegal;
+   bool oIllegal;
 };
 
 class myVerb : public console::globalVerb {
@@ -34,6 +38,11 @@ protected:
          console::stringParameter::required(offsetof(publishCommand,oSource)));
       v->addParameter(
          console::stringParameter::required(offsetof(publishCommand,oTags)));
+
+      v->addOption(
+         *new console::boolOption("--legal",offsetof(publishCommand,oLegal)));
+      v->addOption(
+         *new console::boolOption("--illegal",offsetof(publishCommand,oIllegal)));
 
       return v.release();
    }
@@ -58,11 +67,19 @@ void publishCommand::run(console::iLog& l)
 
          a.source = oSource;
          a.tags = tags;
+         if(oLegal)
+            a.legal = "legal";
+         else if(oIllegal)
+            a.legal = "illegal";
+         else
+            a.legal = "unknown";
 
          a.hash = f.hash();
          a.fileName = cmn::narrow(f.fileName());
+         if(!f.thumbnailFullFilePath().empty())
+            a.thumbnailExt = cmn::narrow(cmn::splitExt(f.thumbnailFullFilePath()));
 
-         db.publish(a,f.fullFilePath());
+         db.publish(a,f.fullFilePath(),f.thumbnailFullFilePath());
       });
 
       l.writeLnInfo("publish complete");

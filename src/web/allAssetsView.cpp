@@ -26,7 +26,8 @@ public:
    virtual void onSave(db::iDb& db)
    {
       tcat::typePtr<file::iFileManager> fMan;
-      auto aPath = cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog) + "www\\index.html";
+      auto aPath = cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog) + "assets";
+      auto wPath = cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog) + "www\\index.html";
 
       html::root r;
       auto& b = htmlWriterHelper::boilerplate(r,*this);
@@ -65,10 +66,17 @@ public:
             {
                auto ext = cmn::lower(cmn::splitExt(cmn::widen(jit->first)));
                auto *pFT = aFTEx->fetch(ext);
-               if(pFT && pFT->isWebViewable())
+               if(pFT->isWebViewable())
                {
                   auto& i = tn.addChild<html::img>();
                   i.attrs["src"] = "../assets/" + jit->second->hash + "." + cmn::narrow(ext);
+                  i.attrs["style"] = "max-height: 100px; max-width: 100px;";
+               }
+               else if(!jit->second->thumbnailExt.empty())
+               {
+                  // try a thumbnail instead
+                  auto& i = tn.addChild<html::img>();
+                  i.attrs["src"] = "../assets/" + jit->second->hash + "-tn." + jit->second->thumbnailExt;
                   i.attrs["style"] = "max-height: 100px; max-width: 100px;";
                }
             }
@@ -81,12 +89,12 @@ public:
          }
       }
 
-      fMan->createAllFoldersForFile(aPath.c_str(),*m_pLog,/*really?*/true);
-      std::ofstream o(aPath.c_str());
+      fMan->createAllFoldersForFile(wPath.c_str(),*m_pLog,/*really?*/true);
+      std::ofstream o(wPath.c_str());
       html::htmlStream s(o);
       r.write(s);
 
-      m_pLog->writeLnInfo("to view db visit '%s'",aPath.c_str());
+      m_pLog->writeLnInfo("to view db visit '%s'",wPath.c_str());
    }
 
    virtual std::string name() const { return "all assets"; }
