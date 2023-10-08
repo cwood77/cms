@@ -77,6 +77,8 @@ public:
    virtual void publish(const asset& a, const std::wstring& fullAssetPath, const std::wstring& fullThumbnailPath) = 0;
    virtual void erase(const asset& a) = 0;
 
+   virtual void extract(const std::string& hash, const std::wstring& destPath) const = 0;
+
    virtual void saveRefs(const usageRefs& r) = 0;
 
    virtual void commit() = 0;

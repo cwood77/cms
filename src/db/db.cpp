@@ -231,6 +231,44 @@ public:
       m_dirty = true;
    }
 
+   virtual void extract(const std::string& hash, const std::wstring& destPath) const
+   {
+      auto appPath = cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog);
+      auto sstPath = appPath + "assets\\" + hash + ".sst";
+
+      tcat::typePtr<file::iFileManager> fMan;
+      if(!fMan->doesFileExist(sstPath))
+      {
+         m_pLog->writeLnInfo("no asset of this hash exists");
+         return;
+      }
+
+      cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
+         sstPath.c_str(),
+         file::iFileManager::kReadOnly
+      ));
+      pFile->tie(*m_pLog);
+      tcat::typePtr<iAssetConverter> fmt;
+      asset a;
+      fmt->loadFromSst(pFile->dict(),a);
+
+      auto fullDestPath
+         = destPath
+         + cmn::widen(a.fileName);
+      auto fullSrcPath
+         = cmn::widen(appPath + "assets\\" + hash + ".")
+         + cmn::splitExt(fullDestPath);
+
+      m_pLog->writeLnInfo("copying '%S' to '%S'",fullSrcPath.c_str(),fullDestPath.c_str());
+
+      auto success = ::CopyFileW(
+         fullSrcPath.c_str(),
+         fullDestPath.c_str(),
+         /*bFailIfExists*/TRUE);
+      if(!success)
+         throw std::runtime_error("failed to copy asset file");
+   }
+
    virtual void saveRefs(const usageRefs& r)
    {
       tcat::typePtr<file::iFileManager> fMan;

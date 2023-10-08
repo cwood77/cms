@@ -293,6 +293,7 @@ CMS_SRC = \
 	src/cms/finder.cpp \
 	src/cms/main.cpp \
 	src/cms/verb.delete.cpp \
+	src/cms/verb.extract.cpp \
 	src/cms/verb.publish.cpp \
 	src/cms/verb.refs.cpp \
 	src/cms/verb.register.cpp \
