@@ -39,11 +39,15 @@ void refsCommand::run(console::iLog& l)
       tcat::typePtr<cmn::serviceManager> svcMan;
       auto& db = svcMan->demand<db::iDb>();
 
+      auto c = db.getReferencedClient(cmn::widen(oPath));
+      c.lastKnownFolder = oPath;
+
       tcat::typePtr<db::iHashIndex> hash;
       l.writeLnInfo("indexing assets");
       hash->configure(db);
 
       db::usageRefs refs;
+      refs.guid = c.guid;
       bool valid = true;
       cms::assetFinder::find(cmn::widen(oPath),[&](auto& f)
       {
@@ -63,10 +67,12 @@ void refsCommand::run(console::iLog& l)
             refs.hashes.insert(h);
       });
 
-      if(valid)
-         db.saveRefs(refs,oPath);
+      db.saveRefs(refs);
+      db.saveClient(c);
 
       l.writeLnInfo("refs complete");
+
+      db.commit();
    });
 }
 

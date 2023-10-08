@@ -1,3 +1,5 @@
+#include "../cmn/string.hpp"
+#include "../db/api.hpp"
 #include "../tcatlib/api.hpp"
 #include "html.hpp"
 #include "htmlHelper.hpp"
@@ -45,6 +47,58 @@ html::tagNode& htmlWriterHelper::boilerplate(web::html::root& r, iView& thisView
    }
 
    return b;
+}
+
+void htmlWriterHelper::assetTable(std::list<db::asset>& l, html::tagNode& b)
+{
+   tcat::typePtr<db::iAssetFileTypeExpert> aFTEx;
+
+   auto& t = b.addChild<html::table>();
+   t.attrs["border"]="1";
+   {
+      auto& r = t.addChild<html::tr>();
+      r.addChild<html::td>()
+         .addChild<html::content>().content << "thumbnail";
+      r.addChild<html::td>()
+         .addChild<html::content>().content << "filename";
+      r.addChild<html::td>()
+         .addChild<html::content>().content << "source";
+      r.addChild<html::td>()
+         .addChild<html::content>().content << "hash";
+   }
+
+   std::map<std::string,db::asset*> sorted;
+   for(auto& a : l)
+      sorted[a.fileName] = &a;
+
+   for(auto it=sorted.begin();it!=sorted.end();++it)
+   {
+      auto& r = t.addChild<html::tr>();
+      auto& tn = r.addChild<html::td>();
+      {
+         auto ext = cmn::lower(cmn::splitExt(cmn::widen(it->first)));
+         auto *pFT = aFTEx->fetch(ext);
+         if(pFT->isWebViewable())
+         {
+            auto& i = tn.addChild<html::img>();
+            i.attrs["src"] = "../assets/" + it->second->hash + "." + cmn::narrow(ext);
+            i.attrs["style"] = "max-height: 100px; max-width: 100px;";
+         }
+         else if(!it->second->thumbnailExt.empty())
+         {
+            // try a thumbnail instead
+            auto& i = tn.addChild<html::img>();
+            i.attrs["src"] = "../assets/" + it->second->hash + "-tn." + it->second->thumbnailExt;
+            i.attrs["style"] = "max-height: 100px; max-width: 100px;";
+         }
+      }
+      r.addChild<html::td>()
+         .addChild<html::content>().content << it->first;
+      r.addChild<html::td>()
+         .addChild<html::content>().content << it->second->source;
+      r.addChild<html::td>()
+         .addChild<html::content>().content << it->second->hash;
+   }
 }
 
 } // namespace web

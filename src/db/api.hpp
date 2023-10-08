@@ -18,21 +18,20 @@ public:
    virtual iAssetFileTypeInfo *fetch(const std::wstring& ext) = 0;
 };
 
-// tracks all used folders along with some basic info
-// tracks all assets along with some basic info
-// has a big dumping ground of assets by guid
-//
-// C:\ProgramData\cms
-// global.sst
-// usage.sst
-// www
-//    index.html
-// assets
-//    <HASH>.sst
-//    <HASH>
-//       <whatever>
+// ---- objects that map to SST ----
 
-// ---- objects that map basically to SST ----
+class client {
+public:
+   std::string guid;
+   std::string name;
+   std::string lastKnownFolder;
+};
+
+class clientRef {
+public:
+   std::string guid;
+};
+
 #if 0
 class usage {
 public:
@@ -55,6 +54,7 @@ public:
 
 class usageRefs {
 public:
+   std::string guid; // of client
    std::string lastUpdated;
    std::set<std::string> hashes;
 };
@@ -69,9 +69,16 @@ public:
 
 class iDb : public iAssetProvider {
 public:
+   virtual void saveClient(const client& c) = 0;
+   virtual std::list<client> listClients() const = 0;
+
+   virtual client getReferencedClient(const std::wstring& refPath) const = 0;
+
    virtual void publish(const asset& a, const std::wstring& fullAssetPath, const std::wstring& fullThumbnailPath) = 0;
-   virtual void saveRefs(const usageRefs& r, const std::string& path) = 0;
    virtual void erase(const asset& a) = 0;
+
+   virtual void saveRefs(const usageRefs& r) = 0;
+
    virtual void commit() = 0;
 };
 

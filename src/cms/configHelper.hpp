@@ -27,6 +27,9 @@ private:
    static std::string initAppDataIf(file::iFileManager& fMan, console::iLog& l, const std::string& root)
    {
       fMan.createAllFoldersForFolder((root + "assets").c_str(),l,/*really*/true);
+      fMan.createAllFoldersForFolder((root + "www").c_str(),l,/*really*/true);
+      fMan.createAllFoldersForFolder((root + "clients").c_str(),l,/*really*/true);
+      fMan.createAllFoldersForFolder((root + "usages").c_str(),l,/*really*/true);
       return root;
    }
 };

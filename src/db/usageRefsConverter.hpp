@@ -11,8 +11,8 @@ class iUsageRefsConverter {
 public:
    virtual ~iUsageRefsConverter() {}
 
-   virtual void saveToSst(const usageRefs& a, sst::dict& d) = 0;
-   virtual void loadFromSst(sst::dict& d, usageRefs& a) = 0;
+   virtual void saveToSst(const usageRefs& v, sst::dict& d) = 0;
+   virtual void loadFromSst(sst::dict& d, usageRefs& v) = 0;
 };
 
 } // namespace db

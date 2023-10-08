@@ -131,6 +131,7 @@ $(CONSOLE_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 DB_SRC = \
 	src/db/assetConverter.cpp \
 	src/db/assetFileTypeExpert.cpp \
+	src/db/clientConverter.cpp \
 	src/db/db.cpp \
 	src/db/hashIndex.cpp \
 	src/db/tagFilter.cpp \
@@ -294,6 +295,7 @@ CMS_SRC = \
 	src/cms/verb.delete.cpp \
 	src/cms/verb.publish.cpp \
 	src/cms/verb.refs.cpp \
+	src/cms/verb.register.cpp \
 
 CMS_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(CMS_SRC)))
 

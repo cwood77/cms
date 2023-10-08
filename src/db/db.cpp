@@ -10,6 +10,7 @@
 #include "../tcatlib/api.hpp"
 #include "api.hpp"
 #include "assetConverter.hpp"
+#include "clientConverter.hpp"
 #include "usageRefsConverter.hpp"
 #include <windows.h>
 
@@ -59,6 +60,86 @@ public:
       } while(::FindNextFileW(hFind.h,&fData));
 
       return m_assets;
+   }
+
+   virtual void saveClient(const client& c)
+   {
+      auto appPath = cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog);
+      auto sstPath = appPath + "clients\\" + c.guid + ".sst";
+
+      tcat::typePtr<file::iFileManager> fMan;
+
+      // save the SST
+      cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
+         sstPath.c_str()
+      ));
+      pFile->tie(*m_pLog);
+      tcat::typePtr<iClientConverter> fmt;
+      fmt->saveToSst(c,pFile->dict());
+
+      // commit the SST
+      pFile->scheduleFor(file::iFileManager::kSaveOnClose);
+      m_dirty = true;
+
+      saveClientRef(c);
+   }
+
+   virtual std::list<client> listClients() const
+   {
+      tcat::typePtr<file::iFileManager> fMan;
+
+      auto cPath = cmn::widen(cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog) + "clients");
+
+      cmn::autoFindHandle hFind;
+      WIN32_FIND_DATAW fData;
+      hFind.h = ::FindFirstFileW((cPath + L"\\*.sst").c_str(),&fData);
+      if(hFind.h == INVALID_HANDLE_VALUE)
+         throw std::runtime_error(cmn::narrow(L"bad path: " + cPath));
+
+      std::list<client> rval;
+      do
+      {
+         if(fData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            ;
+         else
+         {
+            std::wstring fullPath = cPath + L"\\" + fData.cFileName;
+            cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
+               cmn::narrow(fullPath).c_str(),
+               file::iFileManager::kReadOnly
+            ));
+            pFile->tie(*m_pLog);
+            tcat::typePtr<iClientConverter> fmt;
+            client c;
+            fmt->loadFromSst(pFile->dict(),c);
+            rval.push_back(c);
+         }
+      } while(::FindNextFileW(hFind.h,&fData));
+
+      return rval;
+   }
+
+   virtual client getReferencedClient(const std::wstring& refPath) const
+   {
+      clientRef r;
+      {
+         std::wstring fullPath = refPath + L"\\cms.sst";
+         tcat::typePtr<file::iFileManager> fMan;
+         cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
+            cmn::narrow(fullPath).c_str(),
+            file::iFileManager::kReadOnly
+         ));
+         pFile->tie(*m_pLog);
+         tcat::typePtr<iClientRefConverter> fmt;
+         fmt->loadFromSst(pFile->dict(),r);
+      }
+
+      auto clients = listClients();
+      for(auto client : clients)
+         if(client.guid == r.guid)
+            return client;
+
+      throw std::runtime_error("no client for refering guid!");
    }
 
    virtual void publish(const asset& a, const std::wstring& fullAssetPath, const std::wstring& fullThumbnailPath)
@@ -115,22 +196,6 @@ public:
       m_dirty = true;
    }
 
-   virtual void saveRefs(const usageRefs& r, const std::string& path)
-   {
-      tcat::typePtr<file::iFileManager> fMan;
-
-      // save the SST
-      cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
-         (path + "\\usageRefs.sst").c_str()
-      ));
-      pFile->tie(*m_pLog);
-      tcat::typePtr<iUsageRefsConverter> fmt;
-      fmt->saveToSst(r,pFile->dict());
-
-      // commit the SST
-      pFile->scheduleFor(file::iFileManager::kSaveOnClose);
-   }
-
    virtual void erase(const asset& a)
    {
       m_assets.clear();
@@ -166,6 +231,25 @@ public:
       m_dirty = true;
    }
 
+   virtual void saveRefs(const usageRefs& r)
+   {
+      tcat::typePtr<file::iFileManager> fMan;
+
+      auto appPath = cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog);
+      auto sstPath = appPath + "usages\\" + r.guid + ".sst";
+
+      // save the SST
+      cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
+         sstPath.c_str()
+      ));
+      pFile->tie(*m_pLog);
+      tcat::typePtr<iUsageRefsConverter> fmt;
+      fmt->saveToSst(r,pFile->dict());
+
+      // commit the SST
+      pFile->scheduleFor(file::iFileManager::kSaveOnClose);
+   }
+
    virtual void commit()
    {
       if(!m_dirty)
@@ -177,6 +261,29 @@ public:
    }
 
 private:
+   void saveClientRef(const client& c)
+   {
+      auto sstPath = c.lastKnownFolder + "\\cms.sst";
+
+      tcat::typePtr<file::iFileManager> fMan;
+      if(fMan->doesFileExist(sstPath))
+         return;
+
+      clientRef r;
+      r.guid = c.guid;
+
+      // save the SST
+      cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
+         sstPath.c_str()
+      ));
+      pFile->tie(*m_pLog);
+      tcat::typePtr<iClientRefConverter> fmt;
+      fmt->saveToSst(r,pFile->dict());
+
+      // commit the SST
+      pFile->scheduleFor(file::iFileManager::kSaveOnClose);
+   }
+
    console::iLog *m_pLog;
    sst::dict *m_pConfig;
    mutable std::list<asset> m_assets;

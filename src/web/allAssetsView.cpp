@@ -35,58 +35,16 @@ public:
       tcat::typePtr<db::iAssetFileTypeExpert> aFTEx;
 
       auto& assets = db.provideAssets();
-      std::map<std::string,std::map<std::string,const db::asset*> > sorted;
+      std::map<std::string,std::list<db::asset> > sorted;
       for(auto& asset : assets)
-         sorted[*asset.tags.begin()][asset.fileName] = &asset;
+         sorted[*asset.tags.begin()].push_back(asset);
       for(auto it=sorted.begin();it!=sorted.end();++it)
       {
          b.addChild<html::h2>()
             .addChild<html::content>()
                .content << it->first;
 
-         auto& t = b.addChild<html::table>();
-         t.attrs["border"]="1";
-         {
-            auto& r = t.addChild<html::tr>();
-            r.addChild<html::td>()
-               .addChild<html::content>().content << "thumbnail";
-            r.addChild<html::td>()
-               .addChild<html::content>().content << "filename";
-            r.addChild<html::td>()
-               .addChild<html::content>().content << "source";
-            r.addChild<html::td>()
-               .addChild<html::content>().content << "hash";
-         }
-
-         auto& f = it->second;
-         for(auto jit=f.begin();jit!=f.end();++jit)
-         {
-            auto& r = t.addChild<html::tr>();
-            auto& tn = r.addChild<html::td>();
-            {
-               auto ext = cmn::lower(cmn::splitExt(cmn::widen(jit->first)));
-               auto *pFT = aFTEx->fetch(ext);
-               if(pFT->isWebViewable())
-               {
-                  auto& i = tn.addChild<html::img>();
-                  i.attrs["src"] = "../assets/" + jit->second->hash + "." + cmn::narrow(ext);
-                  i.attrs["style"] = "max-height: 100px; max-width: 100px;";
-               }
-               else if(!jit->second->thumbnailExt.empty())
-               {
-                  // try a thumbnail instead
-                  auto& i = tn.addChild<html::img>();
-                  i.attrs["src"] = "../assets/" + jit->second->hash + "-tn." + jit->second->thumbnailExt;
-                  i.attrs["style"] = "max-height: 100px; max-width: 100px;";
-               }
-            }
-            r.addChild<html::td>()
-               .addChild<html::content>().content << jit->first;
-            r.addChild<html::td>()
-               .addChild<html::content>().content << jit->second->source;
-            r.addChild<html::td>()
-               .addChild<html::content>().content << jit->second->hash;
-         }
+         htmlWriterHelper::assetTable(it->second,b);
       }
 
       fMan->createAllFoldersForFile(wPath.c_str(),*m_pLog,/*really?*/true);
