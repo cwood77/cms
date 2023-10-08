@@ -1,22 +1,13 @@
 #ifndef ___cms_finder___
 #define ___cms_finder___
 
+#include "../db/api.hpp"
 #include <functional>
 #include <set>
 
 namespace console { class iLog; }
 
 namespace cms {
-
-class assetInfo {
-public:
-   assetInfo();
-
-   bool isExt(const std::wstring& ext) { return m_exts.find(ext)!=m_exts.end(); }
-
-private:
-   std::set<std::wstring> m_exts;
-};
 
 class zipHandler {
 public:
@@ -48,7 +39,7 @@ private:
    void find(const std::wstring& path);
    void considerFile(const std::wstring& fullPath, const std::wstring& fileName);
 
-   assetInfo m_aInfo;
+   tcat::typePtr<db::iAssetFileTypeExpert> m_pAExpert;
    zipHandler m_zip;
    std::function<void(iFileInfo&)> m_f;
    console::iLog *m_pLog;

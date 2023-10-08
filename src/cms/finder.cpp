@@ -46,16 +46,6 @@ private:
 
 } // anonymous namespace
 
-assetInfo::assetInfo()
-{
-   m_exts.insert(L"avif");
-   m_exts.insert(L"jfif");
-   m_exts.insert(L"jpg");
-   m_exts.insert(L"png");
-   m_exts.insert(L"webp");
-   m_exts.insert(L"zip");
-}
-
 zipHandler::zipHandler()
 {
    tcat::typePtr<cmn::serviceManager> svcMan;
@@ -129,7 +119,7 @@ void assetFinder::considerFile(const std::wstring& fullPath, const std::wstring&
 {
    m_zip.noteFile(fullPath,fileName);
    auto ext = cmn::lower(cmn::splitExt(fileName));
-   if(!m_aInfo.isExt(ext))
+   if(m_pAExpert->fetch(ext) == NULL)
    {
       m_pLog->writeLnInfo("Ignoring file ext %S (%S)",ext.c_str(),fullPath.c_str());
       return;

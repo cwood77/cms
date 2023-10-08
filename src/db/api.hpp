@@ -7,6 +7,17 @@
 
 namespace db {
 
+class iAssetFileTypeInfo {
+public:
+   virtual bool isWebViewable() const = 0;
+};
+
+class iAssetFileTypeExpert {
+public:
+   virtual ~iAssetFileTypeExpert() {}
+   virtual iAssetFileTypeInfo *fetch(const std::wstring& ext) = 0;
+};
+
 // tracks all used folders along with some basic info
 // tracks all assets along with some basic info
 // has a big dumping ground of assets by guid
@@ -60,6 +71,7 @@ class iDb : public iAssetProvider {
 public:
    virtual void publish(const asset& a, const std::wstring& fullAssetPath) = 0;
    virtual void saveRefs(const usageRefs& r, const std::string& path) = 0;
+   virtual void commit() = 0;
 };
 
 #if 0
@@ -91,6 +103,12 @@ public:
    virtual bool hasAsset(const std::string& hash) const = 0;
 };
 #endif
+
+class iDbObserver {
+public:
+   virtual ~iDbObserver() {}
+   virtual void onSave(iDb& db) = 0;
+};
 
 } // namespace db
 

@@ -17,13 +17,15 @@ all: \
 	$(OUT_DIR)/debug/file.test.dll \
 	$(OUT_DIR)/debug/tcatbin.dll \
 	$(OUT_DIR)/debug/test.exe \
+	$(OUT_DIR)/debug/web.dll \
 	$(OUT_DIR)/release/cms.exe \
 	$(OUT_DIR)/release/console.dll \
 	$(OUT_DIR)/release/db.dll \
 	$(OUT_DIR)/release/file.dll \
 	$(OUT_DIR)/release/file.test.dll \
 	$(OUT_DIR)/release/tcatbin.dll \
-	$(OUT_DIR)/release/test.exe
+	$(OUT_DIR)/release/test.exe \
+	$(OUT_DIR)/release/web.dll
 	$(OUT_DIR)/debug/test.exe
 	$(OUT_DIR)/release/test.exe
 
@@ -128,6 +130,7 @@ $(CONSOLE_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 
 DB_SRC = \
 	src/db/assetConverter.cpp \
+	src/db/assetFileTypeExpert.cpp \
 	src/db/db.cpp \
 	src/db/hashIndex.cpp \
 	src/db/usageRefsConverter.cpp \
@@ -245,6 +248,39 @@ $(OUT_DIR)/release/test.exe: $(TEST_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
 $(TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 	$(info $< --> $@)
 	@mkdir -p $(OBJ_DIR)/release/test
+	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
+
+# ----------------------------------------------------------------------
+# web
+
+WEB_SRC = \
+	src/web/allAssetsView.cpp \
+	src/web/html.cpp \
+	src/web/htmlHelper.cpp \
+	src/web/main.cpp \
+
+WEB_DEBUG_OBJ = $(subst src,$(OBJ_DIR)/debug,$(patsubst %.cpp,%.o,$(WEB_SRC)))
+
+$(OUT_DIR)/debug/web.dll: $(WEB_DEBUG_OBJ) $(OUT_DIR)/debug/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/debug
+	@$(LINK_CMD) -shared -o $@ $(WEB_DEBUG_OBJ) $(DEBUG_LNK_FLAGS_POST) -Lbin/out/debug -ltcatlib
+
+$(WEB_DEBUG_OBJ): $(OBJ_DIR)/debug/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/debug/web
+	@$(COMPILE_CMD) $(DEBUG_CC_FLAGS) $< -o $@
+
+WEB_RELEASE_OBJ = $(subst src,$(OBJ_DIR)/release,$(patsubst %.cpp,%.o,$(WEB_SRC)))
+
+$(OUT_DIR)/release/web.dll: $(WEB_RELEASE_OBJ) $(OUT_DIR)/release/tcatlib.lib
+	$(info $< --> $@)
+	@mkdir -p $(OUT_DIR)/release
+	@$(LINK_CMD) -shared -o $@ $(WEB_RELEASE_OBJ) $(RELEASE_LNK_FLAGS_POST) -Lbin/out/release -ltcatlib
+
+$(WEB_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
+	$(info $< --> $@)
+	@mkdir -p $(OBJ_DIR)/release/web
 	@$(COMPILE_CMD) $(RELEASE_CC_FLAGS) $< -o $@
 
 # ----------------------------------------------------------------------

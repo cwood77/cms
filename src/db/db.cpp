@@ -17,7 +17,7 @@ namespace db {
 
 class db : public iDb {
 public:
-   db()
+   db() : m_dirty(false)
    {
       tcat::typePtr<cmn::serviceManager> svcMan;
       m_pLog = &svcMan->demand<console::iLog>();
@@ -96,6 +96,7 @@ public:
 
       // commit the SST
       pFile->scheduleFor(file::iFileManager::kSaveOnClose);
+      m_dirty = true;
    }
 
    virtual void saveRefs(const usageRefs& r, const std::string& path)
@@ -114,10 +115,21 @@ public:
       pFile->scheduleFor(file::iFileManager::kSaveOnClose);
    }
 
+   virtual void commit()
+   {
+      if(!m_dirty)
+         ;//return;
+
+      tcat::typeSet<iDbObserver> pObs;
+      for(size_t i=0;i<pObs.size();i++)
+         pObs[i]->onSave(*this);
+   }
+
 private:
    console::iLog *m_pLog;
    sst::dict *m_pConfig;
    mutable std::list<asset> m_assets;
+   bool m_dirty;
 };
 
 tcatExposeSingletonTypeAs(db,iDb);

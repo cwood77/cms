@@ -66,6 +66,8 @@ void publishCommand::run(console::iLog& l)
       });
 
       l.writeLnInfo("publish complete");
+
+      db.commit();
    });
 }
 
