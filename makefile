@@ -257,6 +257,7 @@ $(TEST_RELEASE_OBJ): $(OBJ_DIR)/release/%.o: src/%.cpp
 
 WEB_SRC = \
 	src/web/allAssetsView.cpp \
+	src/web/clientsView.cpp \
 	src/web/html.cpp \
 	src/web/htmlHelper.cpp \
 	src/web/main.cpp \

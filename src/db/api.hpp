@@ -73,9 +73,11 @@ public:
    virtual std::list<client> listClients() const = 0;
 
    virtual client getReferencedClient(const std::wstring& refPath) const = 0;
+   virtual usageRefs getUsageRefs(const client& c) const = 0;
 
    virtual void publish(const asset& a, const std::wstring& fullAssetPath, const std::wstring& fullThumbnailPath) = 0;
    virtual void erase(const asset& a) = 0;
+   virtual asset loadAsset(const std::string& hash) const = 0;
 
    virtual void extract(const std::string& hash, const std::wstring& destPath) const = 0;
 

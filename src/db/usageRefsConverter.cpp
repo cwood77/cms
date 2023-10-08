@@ -19,7 +19,12 @@ public:
 
    virtual void loadFromSst(sst::dict& d, usageRefs& v)
    {
-      throw 3.14;
+      v.guid = d["guid"].as<sst::str>().get();
+      v.lastUpdated = d["last-updated"].as<sst::str>().get();
+      v.hashes.clear();
+      auto& arr = d["hashes"].as<sst::array>();
+      for(size_t i=0;i<arr.size();i++)
+         v.hashes.insert(arr[i].as<sst::str>().get());
    }
 };
 

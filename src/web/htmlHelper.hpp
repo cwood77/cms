@@ -11,7 +11,7 @@ class htmlWriterHelper {
 public:
    static html::tagNode& boilerplate(web::html::root& r, iView& thisView);
 
-   static void assetTable(std::list<db::asset>& l, html::tagNode& b);
+   static std::string assetTable(std::list<db::asset>& l, html::tagNode& b);
 };
 
 } // namespace web

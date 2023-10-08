@@ -142,6 +142,28 @@ public:
       throw std::runtime_error("no client for refering guid!");
    }
 
+   virtual usageRefs getUsageRefs(const client& c) const
+   {
+      tcat::typePtr<file::iFileManager> fMan;
+
+      auto appPath = cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog);
+      auto sstPath = appPath + "usages\\" + c.guid + ".sst";
+
+      if(!fMan->doesFileExist(sstPath))
+         return usageRefs(); // not an error
+
+      cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
+         sstPath.c_str(),
+         file::iFileManager::kReadOnly
+      ));
+      pFile->tie(*m_pLog);
+      usageRefs r;
+      tcat::typePtr<iUsageRefsConverter> fmt;
+      fmt->loadFromSst(pFile->dict(),r);
+
+      return r;
+   }
+
    virtual void publish(const asset& a, const std::wstring& fullAssetPath, const std::wstring& fullThumbnailPath)
    {
       m_assets.clear();
@@ -231,6 +253,25 @@ public:
       m_dirty = true;
    }
 
+   virtual asset loadAsset(const std::string& hash) const
+   {
+      tcat::typePtr<file::iFileManager> fMan;
+
+      auto aPath = cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog) + "assets";
+      auto fullPath = aPath + "\\" + hash + ".sst";
+
+      cmn::autoReleasePtr<file::iSstFile> pFile(&fMan->bindFile<file::iSstFile>(
+         fullPath.c_str(),
+         file::iFileManager::kReadOnly
+      ));
+      pFile->tie(*m_pLog);
+      tcat::typePtr<iAssetConverter> fmt;
+      asset a;
+      fmt->loadFromSst(pFile->dict(),a);
+
+      return a;
+   }
+
    virtual void extract(const std::string& hash, const std::wstring& destPath) const
    {
       auto appPath = cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog);
@@ -253,7 +294,7 @@ public:
       fmt->loadFromSst(pFile->dict(),a);
 
       auto fullDestPath
-         = destPath
+         = destPath + L"\\"
          + cmn::widen(a.fileName);
       auto fullSrcPath
          = cmn::widen(appPath + "assets\\" + hash + ".")

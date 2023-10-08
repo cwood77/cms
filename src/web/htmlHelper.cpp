@@ -49,8 +49,9 @@ html::tagNode& htmlWriterHelper::boilerplate(web::html::root& r, iView& thisView
    return b;
 }
 
-void htmlWriterHelper::assetTable(std::list<db::asset>& l, html::tagNode& b)
+std::string htmlWriterHelper::assetTable(std::list<db::asset>& l, html::tagNode& b)
 {
+   std::string overallLegal = "legal";
    tcat::typePtr<db::iAssetFileTypeExpert> aFTEx;
 
    auto& t = b.addChild<html::table>();
@@ -65,6 +66,8 @@ void htmlWriterHelper::assetTable(std::list<db::asset>& l, html::tagNode& b)
          .addChild<html::content>().content << "source";
       r.addChild<html::td>()
          .addChild<html::content>().content << "hash";
+      r.addChild<html::td>()
+         .addChild<html::content>().content << "free use?";
    }
 
    std::map<std::string,db::asset*> sorted;
@@ -98,7 +101,16 @@ void htmlWriterHelper::assetTable(std::list<db::asset>& l, html::tagNode& b)
          .addChild<html::content>().content << it->second->source;
       r.addChild<html::td>()
          .addChild<html::content>().content << it->second->hash;
+      r.addChild<html::td>()
+         .addChild<html::content>().content << it->second->legal;
+
+      if(it->second->legal == "illegal" && overallLegal == "legal")
+         overallLegal = it->second->legal;
+      else if(it->second->legal == "unknown")
+         overallLegal = it->second->legal;
    }
+
+   return overallLegal;
 }
 
 } // namespace web
