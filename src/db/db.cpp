@@ -131,6 +131,41 @@ public:
       pFile->scheduleFor(file::iFileManager::kSaveOnClose);
    }
 
+   virtual void erase(const asset& a)
+   {
+      m_assets.clear();
+
+      m_pLog->writeLnInfo("deleting asset %s",a.hash.c_str());
+
+      auto appPath = cms::configHelper::getAppDataPath(*m_pConfig,*m_pLog);
+      auto sstPath = appPath + "assets\\" + a.hash + ".sst";
+      auto assetPath
+         = appPath + "assets\\" + a.hash + "."
+         + cmn::narrow(cmn::splitExt(cmn::widen(a.fileName)));
+      std::string thumbnailPath;
+      if(!a.thumbnailExt.empty())
+         thumbnailPath
+            = appPath + "assets\\" + a.hash + "-tn."
+            + a.thumbnailExt;
+
+      auto success = ::DeleteFileA(sstPath.c_str());
+      if(!success)
+         m_pLog->writeLnInfo("warning: FAILED to delete sst file");
+
+      if(!thumbnailPath.empty())
+      {
+         success = ::DeleteFileA(thumbnailPath.c_str());
+         if(!success)
+            m_pLog->writeLnInfo("warning: FAILED to delete thumbnail");
+      }
+
+      success = ::DeleteFileA(assetPath.c_str());
+      if(!success)
+         m_pLog->writeLnInfo("warning: FAILED to delete asset");
+
+      m_dirty = true;
+   }
+
    virtual void commit()
    {
       if(!m_dirty)

@@ -53,13 +53,11 @@ public:
    std::string thumbnailExt;
 };
 
-#if 1
 class usageRefs {
 public:
    std::string lastUpdated;
    std::set<std::string> hashes;
 };
-#endif
 
 // ---- ??? ----
 
@@ -73,16 +71,17 @@ class iDb : public iAssetProvider {
 public:
    virtual void publish(const asset& a, const std::wstring& fullAssetPath, const std::wstring& fullThumbnailPath) = 0;
    virtual void saveRefs(const usageRefs& r, const std::string& path) = 0;
+   virtual void erase(const asset& a) = 0;
    virtual void commit() = 0;
 };
 
-#if 0
 // --extract <tag>
 class iTagFilter : public iAssetProvider {
 public:
    virtual void configure(const std::string& value, iAssetProvider& base) = 0;
 };
 
+#if 0
 // --extract <guid>
 class iGuidFilter : public iAssetProvider {
 public:
@@ -96,7 +95,6 @@ public:
 };
 #endif
 
-#if 1
 // --refs
 class iHashIndex {
 public:
@@ -104,7 +102,6 @@ public:
    virtual void configure(iAssetProvider& base) = 0;
    virtual bool hasAsset(const std::string& hash) const = 0;
 };
-#endif
 
 class iDbObserver {
 public:
